@@ -1,15 +1,33 @@
 # NETCore.Encrypt [中文文档](http://www.cnblogs.com/piscesLoveCc/p/7423205.html)
 [![NuGet](https://img.shields.io/nuget/v/NETCore.Encrypt.svg)](https://nuget.org/packages/NETCore.Encrypt)
-[![NETCore CLR](https://img.shields.io/badge/.NETCore%20Clr-2.0-brightgreen.svg)](https://www.microsoft.com/net/core)
-[![NetStandard 2.0.3](https://img.shields.io/badge/NetStandard-2.0.3-orange.svg)](https://www.microsoft.com/net/core)
+[![NETCore CLR](https://img.shields.io/badge/.NETCore%20Clr-3.1-brightgreen.svg)](https://www.microsoft.com/net/core)
+[![NetStandard 2.1](https://img.shields.io/badge/NetStandard-2.1-orange.svg)](https://www.microsoft.com/net/core)
 [![license](https://img.shields.io/github/license/myloveCc/NETCore.Encrypt.svg)](https://github.com/myloveCc/NETCore.Encrypt/blob/master/License)
+[![GitHub-Actions-Img]][GitHub-Actions-Url]
+
+[GitHub-Actions-Img]:https://github.com/myloveCc/NETCore.Encrypt/workflows/test/badge.svg
+[GitHub-Actions-Url]:https://github.com/myloveCc/NETCore.Encrypt/actions
 
 NETCore encrypt and decrpty tool，Include AES，RSA，MD5，SAH1，SAH256，SHA384，SHA512 and more
 
 To install NETCore.Encrypt, run the following command in the [Package Manager Console](https://docs.microsoft.com/zh-cn/nuget/tools/package-manager-console)
+
+
+
+## Package Manager
 ```
-Install-Package NETCore.Encrypt -Version 2.0.7
+Install-Package NETCore.Encrypt -Version 2.0.9
 ```
+## .NET CLI
+```
+dotnet add package NETCore.Encrypt --version 2.0.9
+```
+
+## PackageReference
+```
+<PackageReference Include="NETCore.Encrypt" Version="2.0.9" />
+```
+
 
 ***
 
@@ -27,21 +45,21 @@ Install-Package NETCore.Encrypt -Version 2.0.7
   ```
 
 #### AES encrypt
-  - AES encrypt without iv
+  - AES encrypt without iv (ECB mode)
 
     ```csharp
     var srcString = "aes encrypt";
     var encrypted = EncryptProvider.AESEncrypt(srcString, key);
 
     ```
-  - AES encrypt with iv
+  - AES encrypt with iv (CBC mode)
 
     ```csharp
     var srcString = "aes encrypt";
     var encrypted = EncryptProvider.AESEncrypt(srcString, key, iv);
 
     ```
-  - AES encrypt bytes at version 2.0.6
+  - AES encrypt bytes with iv (CBC mode)
 
     ```csharp
     var srcBytes = new byte[]{xxx};
@@ -50,28 +68,28 @@ Install-Package NETCore.Encrypt -Version 2.0.7
     ```
 #### ASE decrypt
 
-  - AES decrypt without iv
+  - AES decrypt without iv (ECB mode)
     
     ```csharp
     var encryptedStr = "xxxx";
     var decrypted = EncryptProvider.AESDecrypt(encryptedStr, key);
     ```
   
-  - AES decrypt with iv
+  - AES decrypt with iv (CBC mode)
    
     ```csharp
     var encryptedStr = "xxxx";
     var decrypted = EncryptProvider.AESDecrypt(encryptedStr, key, iv);
     ```
 
-  - AES decrypt bytes at version 2.0.6
+  - AES decrypt bytes with iv (CBC mode)
    
     ```csharp
     var encryptedBytes =  new byte[]{xxx};
     var decryptedBytes = EncryptProvider.AESDecrypt(encryptedBytes, key, iv);
     ```
 
-## DES (version 2.0.2)
+## DES
 
 - #### Create DES Key
 
@@ -81,31 +99,53 @@ Install-Package NETCore.Encrypt -Version 2.0.7
   var desKey = EncryptProvider.CreateDesKey();
   
   ```
+- #### Create DES Iv 【NEW】
 
-- #### DES encrypt
+  ```csharp
+  
+  //des iv length is 8 bit
+  var desIv = EncryptProvider.CreateDesIv();
+  
+  ```
+
+- #### DES encrypt (ECB mode)
 
     ```csharp
     var srcString = "des encrypt";
     var encrypted = EncryptProvider.DESEncrypt(srcString, key);
     ```
-- #### DES encrypt bytes at version 2.0.6
+- #### DES encrypt bytes (ECB mode)
    
     ```csharp
     var srcBytes =  new byte[]{xxx};
     var decryptedBytes = EncryptProvider.DESEncrypt(srcBytes, key);
     ```
-- #### DES decrypt
+- #### DES decrypt (ECB mode)
 
     ```csharp
     var encryptedStr = "xxxx";
     var decrypted = EncryptProvider.DESDecrypt(encryptedStr, key);
     ```
 
-- #### DES decrypt bytes at version 2.0.6
-   
+- #### DES decrypt bytes  (ECB mode)
+
     ```csharp
     var encryptedBytes =  new byte[]{xxx};
     var decryptedBytes = EncryptProvider.DESDecrypt(encryptedBytes, key);
+    ```
+
+- #### DES encrypt bytes with iv (CBC mode)【NEW】
+
+    ```csharp
+    var srcBytes =  new byte[]{xxx};
+    var encrypted = EncryptProvider.DESEncrypt(srcBytes, key, iv);
+    ```
+
+- #### DES decrypt bytes with iv (CBC mode)【NEW】
+
+    ```csharp
+    var encryptedBytes =  new byte[]{xxx};
+    var encrypted = EncryptProvider.DESDecrypt(encryptedBytes, key, iv);
     ```
 
 ## RSA
@@ -113,7 +153,7 @@ Install-Package NETCore.Encrypt -Version 2.0.7
   - #### Enum RsaSize
 
     ```csharp
-     public enum RsaSize
+    public enum RsaSize
     {
         R2048=2048,
         R3072=3072,
@@ -121,7 +161,7 @@ Install-Package NETCore.Encrypt -Version 2.0.7
     }
     ```
   
-  - #### Create RSA Key with RsaSize(update at version 2.0.1)
+  - #### Create RSA Key with RsaSize
 
     ```csharp
     var rsaKey = EncryptProvider.CreateRsaKey();    //default is 2048
@@ -133,6 +173,15 @@ Install-Package NETCore.Encrypt -Version 2.0.7
     var exponent = rsaKey.Exponent;
     var modulus = rsaKey.Modulus;
     ```
+	  
+  - #### Rsa Sign and Verify method 【NEW】
+
+    ```csharp
+	string rawStr = "xxx";
+    string signStr = EncryptProvider.RSASign(rawStr, privateKey);
+    bool   result = EncryptProvider.RSAVerify(rawStr, signStr, publicKey);
+    ```
+
   - #### RSA encrypt
   
     ```csharp
@@ -144,6 +193,7 @@ Install-Package NETCore.Encrypt -Version 2.0.7
 
     // On mac/linux at version 2.0.5
     var encrypted = EncryptProvider.RSAEncrypt(publicKey, srcString, RSAEncryptionPadding.Pkcs1);
+
     ```
   
   - #### RSA decrypt
@@ -158,13 +208,70 @@ Install-Package NETCore.Encrypt -Version 2.0.7
     var decrypted = EncryptProvider.RSADecrypt(privateKey, encryptedStr, RSAEncryptionPadding.Pkcs1);
     ```
 
-  - #### RSA from string (add at version 2.0.1)
+  - #### RSA from string 
 
     ```csharp
     var privateKey = rsaKey.PrivateKey;
     RSA rsa = EncryptProvider.RSAFromString(privateKey);
     ```
-  
+
+   - #### RSA with PEM 【NEW】
+
+     ```csharp
+
+	 //Rsa to pem format key
+
+	 //PKCS1 pem
+	 var pkcs1KeyTuple = EncryptProvider.RSAToPem(false);
+	 var publicPem = pkcs1KeyTuple.publicPem;
+	 var privatePem = pkcs1KeyTuple.privatePem;
+
+	 //PKCS8 pem
+	 var pkcs8KeyTuple = EncryptProvider.RSAToPem(true);
+	 publicPem = pkcs8KeyTuple.publicPem;
+	 privatePem = pkcs8KeyTuple.privatePem;
+
+	 //Rsa from pem key
+
+	 var rsa = EncryptProvider.RSAFromPem(pemPublicKey);
+	 rsa = EncryptProvider.RSAFromPem(pemPrivateKey);
+
+	 //Rsa encrypt and decrypt with pem key
+
+	 var rawStr = "xxx";
+	 var enctypedStr = EncryptProvider.RSAEncryptWithPem(pemPublicKey, rawStr);
+	 var decryptedStr = EncryptProvider.RSADecryptWithPem(pemPrivateKey, enctypedStr);
+
+	 ```
+   - #### RSA with PKCS #1 / PKCS #8 【PRE】
+
+     ```csharp
+
+	 //Rsa to pkcs1 format key
+
+	 //PKCS1
+	 var pkcs1KeyTuple = EncryptProvider.RsaToPkcs1();
+	 var publicPkcs1 = pkcs1KeyTuple.publicPkcs1;
+	 var privatePkcs1 = pkcs1KeyTuple.privatePkcs1;
+
+	 //Rsa to pkcs8 format key
+	 
+	 //PKCS8
+	 var pkcs8KeyTuple = EncryptProvider.RsaToPkcs8();
+	 var publicPkcs8 = pkcs1KeyTuple.publicPkcs8;
+	 var privatePkcs8 = pkcs1KeyTuple.privatePkcs8;
+
+	 //Rsa from pkcs public key
+
+	 var rsa = EncryptProvider.RSAFromPublicPkcs(pkcsPublicKey);  // Pkcs #1 | Pkcs #8
+	 rsa = EncryptProvider.RSAFromPrivatePkcs1(privatePkcs1);
+	 rsa = EncryptProvider.RSAFromPrivatePkcs8(privatePkcs8);
+	 
+	 //Rsa encrypt and decrypt with pkcs key
+		
+
+
+	 ```
   ## MD5
   
   ```csharp
@@ -292,3 +399,4 @@ Install-Package NETCore.Encrypt -Version 2.0.7
 # LICENSE
 
 [MIT License](https://github.com/myloveCc/NETCore.Encrypt/blob/master/License)
+

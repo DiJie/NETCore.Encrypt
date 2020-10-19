@@ -172,7 +172,7 @@ namespace NETCore.Encrypt.Tests
 
             //RSAEncryptionPaddingMode is Pkcs1
             var padding = RSAEncryptionPadding.Pkcs1;
-            var maxLength = ((int) size - 384) / 8 + 37;
+            var maxLength = ((int)size - 384) / 8 + 37;
             var rawData = rawStr.Substring(0, maxLength);
 
             var encryptedStr = EncryptProvider.RSAEncrypt(publicKey, rawData, padding);
@@ -183,7 +183,7 @@ namespace NETCore.Encrypt.Tests
 
             var sha1 = "oaep".SHA1();
             var length = sha1.Length;
-            maxLength = (int) size / 8 - 42;   //214 //40 
+            maxLength = (int)size / 8 - 42;   //214 //40 
             rawData = rawStr.Substring(0, maxLength);
 
             encryptedStr = EncryptProvider.RSAEncrypt(publicKey, rawData, padding);
@@ -193,7 +193,7 @@ namespace NETCore.Encrypt.Tests
 
             padding = RSAEncryptionPadding.OaepSHA256;
 
-            maxLength = (int) size / 8 - 66;   //190   //64
+            maxLength = (int)size / 8 - 66;   //190   //64
             rawData = rawStr.Substring(0, maxLength);
 
             encryptedStr = EncryptProvider.RSAEncrypt(publicKey, rawData, padding);
@@ -202,7 +202,7 @@ namespace NETCore.Encrypt.Tests
             Assert.Equal(decryptedStr, rawData);
 
             padding = RSAEncryptionPadding.OaepSHA384;
-            maxLength = (int) size / 8 - 98;  //158  //96
+            maxLength = (int)size / 8 - 98;  //158  //96
             rawData = rawStr.Substring(0, maxLength);
 
             encryptedStr = EncryptProvider.RSAEncrypt(publicKey, rawData, padding);
@@ -211,7 +211,7 @@ namespace NETCore.Encrypt.Tests
             Assert.Equal(decryptedStr, rawData);
 
             padding = RSAEncryptionPadding.OaepSHA512;
-            maxLength = (int) size / 8 - 130; //126  // 128
+            maxLength = (int)size / 8 - 130; //126  // 128
             rawData = rawStr.Substring(0, maxLength);
 
             encryptedStr = EncryptProvider.RSAEncrypt(publicKey, rawData, padding);
@@ -234,6 +234,205 @@ namespace NETCore.Encrypt.Tests
             {
                 EncryptProvider.RSAEncrypt(publicKey, rawStr);
             });
+        }
+
+        [Fact(DisplayName = "Rsa sign and verify test")]
+        public void Rsa_SignAndVerify_Test()
+        {
+            //Act
+            var rawStr = "123456";
+            var rawStr1 = "123457";
+
+            var rsaKey = EncryptProvider.CreateRsaKey();
+            var privateKey = rsaKey.PrivateKey;
+            var publicKey = rsaKey.PublicKey;
+
+            var signStr = EncryptProvider.RSASign(rawStr, privateKey);
+
+            var result = EncryptProvider.RSAVerify(rawStr, signStr, publicKey);
+            var errorResult = EncryptProvider.RSAVerify(rawStr1, signStr, publicKey);
+
+            //Assert
+            Assert.NotEmpty(signStr);
+            Assert.True(result);
+            Assert.False(errorResult);
+        }
+
+        [Theory(DisplayName = "Rsa to pem test")]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Rsa_To_Pem_Test(bool isPKCS8)
+        {
+            //Act
+            var pemResult = EncryptProvider.RSAToPem(isPKCS8);
+
+            //Assert
+            Assert.NotEmpty(pemResult.privatePem);
+            Assert.NotEmpty(pemResult.publicPem);
+        }
+
+
+        [Fact(DisplayName = "Rsa from pem test")]
+        public void Rsa_From_Pem_Test()
+        {
+            //Act
+            var pemPublicKey = @"
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCxnBvS8cdsnAev2sRDRYWxznm1
+QxZzaypfNXLvK7CDGk8TR7K+Pzsa+tpJfoyN/Z4B6xdlpsERo2Cu6AzolvrDLx5w
+ZoI0kgdfaBMbUkdOB1m97zFYjKWoPeTskFzWZ3GHcQ3EXT0NJXXFXAskY45vEpbc
+5qFgEhcPy3BMqHRibwIDAQAB
+-----END PUBLIC KEY-----";
+
+            var rsaFromPublickPem = EncryptProvider.RSAFromPem(pemPublicKey);
+
+            var pemPrivateKey = @"
+-----BEGIN RSA PRIVATE KEY-----
+MIICWwIBAAKBgQCxnBvS8cdsnAev2sRDRYWxznm1QxZzaypfNXLvK7CDGk8TR7K+
+Pzsa+tpJfoyN/Z4B6xdlpsERo2Cu6AzolvrDLx5wZoI0kgdfaBMbUkdOB1m97zFY
+jKWoPeTskFzWZ3GHcQ3EXT0NJXXFXAskY45vEpbc5qFgEhcPy3BMqHRibwIDAQAB
+AoGAAdwpqm7fxh0S3jOYpJULeQ45gL11dGX7Pp4CWHYzq1vQ14SDtFxYfnLWwGLz
+499zvSoSHP1pvjPgz6lxy9Rw8dUxCgvh8VQydMQzaug2XD1tkmtcSWInwFKBAfQ7
+rceleyD0aK8JHJiuzM1p+yIJ/ImGK0Zk2U/svqrdJrNR4EkCQQDo3d5iWcjd3OLD
+38k1GALEuN17KNpJqLvJcIEJl0pcHtOiNnyy2MR/XUghDpuxwhrhudB/TvX4tuI0
+MUeVo5fjAkEAw0D6m9jkwE5uuEYN/l/84rbQ79p2I7r5Sk6zbMyBOvgl6CDlJyxY
+434DDm6XW7c55ALrnlratEW5HPiPxuHZBQJANnE4vtGy7nvn4Fd/mRQmAYwe695f
+On1iefP9lxpx3huu6uvGN6IKPqS2alQZ/nMdCc0Be+IgC6fmNsGWtNtsdQJAJvB4
+ikgxJqD9t8ZQ2CAwgM5Q0OTSlsGdIdKcOeB3DVmbxbV5vdw8RfJFjcVEbkgWRYDH
+mKcp4rXc+wgfNFyqOQJATZ1I5ER8AZAn5JMMH9zK+6oFvhLUgKyWO18W+dbcFrBd
+AzlTB+HHYEIyTmaDtXWAwgBvJNIHk4BbM1meCH4QnA==
+-----END RSA PRIVATE KEY-----";
+
+            var rsaFromPrivatePem = EncryptProvider.RSAFromPem(pemPrivateKey);
+
+            //Assert
+            Assert.NotNull(rsaFromPublickPem);
+            Assert.NotNull(rsaFromPublickPem);
+            Assert.Equal(rsaFromPublickPem.KeySize, rsaFromPrivatePem.KeySize);
+            var privateKey = EncryptProvider.CreateRsaKey(rsaFromPrivatePem);
+            var publicKey = EncryptProvider.CreateRsaKey(rsaFromPublickPem, false);
+            var raw = "123123124";
+            var signStr = EncryptProvider.RSASign(raw, privateKey.PrivateKey);
+            var result = EncryptProvider.RSAVerify(raw, signStr, publicKey.PublicKey);
+            Assert.True(result);
+        }
+
+
+        [Fact(DisplayName = "Rsa encrypt decrypt with pem key test")]
+        public void Rsa_Pem_Test()
+        {
+            //Act
+            var rawStr = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQMIGfMA0GCS";
+
+            var pemPublicKey = @"
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCxnBvS8cdsnAev2sRDRYWxznm1
+QxZzaypfNXLvK7CDGk8TR7K+Pzsa+tpJfoyN/Z4B6xdlpsERo2Cu6AzolvrDLx5w
+ZoI0kgdfaBMbUkdOB1m97zFYjKWoPeTskFzWZ3GHcQ3EXT0NJXXFXAskY45vEpbc
+5qFgEhcPy3BMqHRibwIDAQAB
+-----END PUBLIC KEY-----";
+
+            var pemPrivateKey = @"
+-----BEGIN RSA PRIVATE KEY-----
+MIICWwIBAAKBgQCxnBvS8cdsnAev2sRDRYWxznm1QxZzaypfNXLvK7CDGk8TR7K+
+Pzsa+tpJfoyN/Z4B6xdlpsERo2Cu6AzolvrDLx5wZoI0kgdfaBMbUkdOB1m97zFY
+jKWoPeTskFzWZ3GHcQ3EXT0NJXXFXAskY45vEpbc5qFgEhcPy3BMqHRibwIDAQAB
+AoGAAdwpqm7fxh0S3jOYpJULeQ45gL11dGX7Pp4CWHYzq1vQ14SDtFxYfnLWwGLz
+499zvSoSHP1pvjPgz6lxy9Rw8dUxCgvh8VQydMQzaug2XD1tkmtcSWInwFKBAfQ7
+rceleyD0aK8JHJiuzM1p+yIJ/ImGK0Zk2U/svqrdJrNR4EkCQQDo3d5iWcjd3OLD
+38k1GALEuN17KNpJqLvJcIEJl0pcHtOiNnyy2MR/XUghDpuxwhrhudB/TvX4tuI0
+MUeVo5fjAkEAw0D6m9jkwE5uuEYN/l/84rbQ79p2I7r5Sk6zbMyBOvgl6CDlJyxY
+434DDm6XW7c55ALrnlratEW5HPiPxuHZBQJANnE4vtGy7nvn4Fd/mRQmAYwe695f
+On1iefP9lxpx3huu6uvGN6IKPqS2alQZ/nMdCc0Be+IgC6fmNsGWtNtsdQJAJvB4
+ikgxJqD9t8ZQ2CAwgM5Q0OTSlsGdIdKcOeB3DVmbxbV5vdw8RfJFjcVEbkgWRYDH
+mKcp4rXc+wgfNFyqOQJATZ1I5ER8AZAn5JMMH9zK+6oFvhLUgKyWO18W+dbcFrBd
+AzlTB+HHYEIyTmaDtXWAwgBvJNIHk4BbM1meCH4QnA==
+-----END RSA PRIVATE KEY-----";
+
+            var enctypedStr = EncryptProvider.RSAEncryptWithPem(pemPublicKey, rawStr);
+
+            var decryptedStr = EncryptProvider.RSADecryptWithPem(pemPrivateKey, enctypedStr);
+
+            //Assert
+            Assert.NotEmpty(enctypedStr);
+            Assert.Equal(decryptedStr, rawStr);
+
+        }
+
+        [Fact(DisplayName = "Rsa export pkcs #1 key test")]
+        public void Rsa_Pkcs1_Test()
+        {
+            //Act
+            var pkcs1Result = EncryptProvider.RsaToPkcs1();
+
+            //Assert
+            Assert.NotEmpty(pkcs1Result.publicPkcs1);
+            Assert.NotEmpty(pkcs1Result.privatePkcs1);
+        }
+
+        [Fact(DisplayName = "Rsa import pkcs #1 key test")]
+        public void Rsa_From_Pkcs1_Test()
+        {
+            //Act
+            var rawString = "test";
+            var pkcs1Result = EncryptProvider.RsaToPkcs1();
+
+            var publicKey = pkcs1Result.publicPkcs1;
+            var privateKey = pkcs1Result.privatePkcs1;
+
+            var rsa1 = EncryptProvider.RSAFromPublicPkcs(publicKey);
+            var rsaKey1 = EncryptProvider.CreateRsaKey(rsa1, false);
+
+            var rsa2 = EncryptProvider.RSAFromPrivatePkcs1(privateKey);
+            var rsaKey2 = EncryptProvider.CreateRsaKey(rsa2);
+
+            var encrytpedStr = EncryptProvider.RSAEncrypt(rsaKey1.PublicKey, rawString);
+            var decryptedStr = EncryptProvider.RSADecrypt(rsaKey2.PrivateKey, encrytpedStr);
+
+            //Assert
+            Assert.NotNull(rsa1);
+            Assert.NotNull(rsa2);
+            Assert.NotEmpty(encrytpedStr);
+            Assert.NotEmpty(decryptedStr);
+            Assert.Equal(rawString, decryptedStr);
+        }
+
+        [Fact(DisplayName = "Rsa export pkcs #8 key test")]
+        public void Rsa_Pkcs8_Test()
+        {
+            //Act
+            var pkcs1Result = EncryptProvider.RsaToPkcs8();
+
+            //Assert
+            Assert.NotEmpty(pkcs1Result.publicPkcs8);
+            Assert.NotEmpty(pkcs1Result.privatePkcs8);
+        }
+
+        [Fact(DisplayName = "Rsa import pkcs #8 key test")]
+        public void Rsa_From_Pkcs8_Test()
+        {
+            //Act
+            var rawStr = "test";
+            var pkcs1Result = EncryptProvider.RsaToPkcs8();
+
+            var publicKey = pkcs1Result.publicPkcs8;
+            var privateKey = pkcs1Result.privatePkcs8;
+
+            var rsa1 = EncryptProvider.RSAFromPublicPkcs(publicKey);
+            var rsaKey1 = EncryptProvider.CreateRsaKey(rsa1, false);
+
+            var rsa2 = EncryptProvider.RSAFromPrivatePkcs8(privateKey);
+            var rsaKey2 = EncryptProvider.CreateRsaKey(rsa2);
+
+            var encrytpedStr = EncryptProvider.RSAEncrypt(rsaKey1.PublicKey, rawStr);
+            var decryptedStr = EncryptProvider.RSADecrypt(rsaKey2.PrivateKey, encrytpedStr);
+
+            //Assert
+            Assert.NotNull(rsa1);
+            Assert.NotNull(rsa2);
+            Assert.NotEmpty(encrytpedStr);
+            Assert.NotEmpty(decryptedStr);
+            Assert.Equal(decryptedStr,rawStr );
         }
     }
 }
